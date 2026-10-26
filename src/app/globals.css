@@ -1,3 +1,361 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    color: #ffffff;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
+/* Glassmorphism custom utility styles */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-panel-subtle {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* Smooth custom horizontal scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+/* Subtle float animation for hero weather icon */
+@keyframes weather-float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.02);
+  }
+}
+
+.animate-weather-float {
+  animation: weather-float 4s ease-in-out infinite;
+}
+
+/* Pulse glow animation */
+@keyframes soft-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+.animate-soft-glow {
+  animation: soft-glow 6s ease-in-out infinite;
+}
+
+/* ============================================================
+   WEATHER BACKGROUND ANIMATIONS
+   ============================================================ */
+
+/* 1. Raindrop Animation */
+@keyframes raindrop-fall {
+  0% {
+    transform: translateY(-20px) translateX(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(105vh) translateX(30px);
+    opacity: 0;
+  }
+}
+
+.animate-raindrop {
+  animation: raindrop-fall linear infinite;
+}
+
+/* Heavy rain for Thunderstorm */
+@keyframes heavy-rain-fall {
+  0% {
+    transform: translateY(-30px) translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(110vh) translateX(45px);
+    opacity: 0;
+  }
+}
+
+.animate-heavy-rain {
+  animation: heavy-rain-fall linear infinite;
+}
+
+/* 2. Lightning Flash */
+@keyframes lightning-flash {
+  0%, 93%, 95%, 100% {
+    opacity: 0;
+  }
+  94% {
+    opacity: 0.65;
+  }
+  96% {
+    opacity: 0.85;
+  }
+}
+
+.animate-lightning-flash {
+  animation: lightning-flash 7s ease-out infinite;
+}
+
+/* 3. Cloud Drift Animations */
+@keyframes cloud-drift-1 {
+  0% {
+    transform: translateX(-15%);
+  }
+  50% {
+    transform: translateX(65vw);
+  }
+  100% {
+    transform: translateX(110vw);
+  }
+}
+
+@keyframes cloud-drift-2 {
+  0% {
+    transform: translateX(100vw);
+  }
+  50% {
+    transform: translateX(35vw);
+  }
+  100% {
+    transform: translateX(-25%);
+  }
+}
+
+@keyframes cloud-drift-3 {
+  0% {
+    transform: translateX(-30%);
+  }
+  50% {
+    transform: translateX(50vw);
+  }
+  100% {
+    transform: translateX(115vw);
+  }
+}
+
+.animate-cloud-drift-1 {
+  animation: cloud-drift-1 45s linear infinite alternate;
+}
+
+.animate-cloud-drift-2 {
+  animation: cloud-drift-2 60s linear infinite alternate;
+}
+
+.animate-cloud-drift-3 {
+  animation: cloud-drift-3 50s linear infinite alternate;
+}
+
+/* 4. Sun Pulse & Rays */
+@keyframes sun-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.95;
+  }
+}
+
+.animate-sun-pulse {
+  animation: sun-pulse 5s ease-in-out infinite;
+}
+
+@keyframes slow-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-slow-spin {
+  animation: slow-spin 45s linear infinite;
+}
+
+/* 5. Heatwaves (Indian Summer / Hot Weather) */
+@keyframes heatwave-rise {
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.4;
+  }
+  70% {
+    transform: translateY(-80px) scaleX(1.3);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateY(-160px) scaleX(1.6);
+    opacity: 0;
+  }
+}
+
+.animate-heatwave {
+  animation: heatwave-rise ease-in-out infinite;
+}
+
+/* 6. Snowfall */
+@keyframes snowfall-drift {
+  0% {
+    transform: translateY(-20px) translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(50vh) translateX(25px);
+  }
+  100% {
+    transform: translateY(105vh) translateX(-20px);
+    opacity: 0;
+  }
+}
+
+.animate-snowfall {
+  animation: snowfall-drift linear infinite;
+}
+
+/* 7. Fog / Mist Drifting */
+@keyframes fog-drift-1 {
+  0%, 100% {
+    transform: translateX(0) scaleY(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateX(80px) scaleY(1.2);
+    opacity: 0.6;
+  }
+}
+
+@keyframes fog-drift-2 {
+  0%, 100% {
+    transform: translateX(0) scaleY(1.2);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(-100px) scaleY(1);
+    opacity: 0.7;
+  }
+}
+
+.animate-fog-drift-1 {
+  animation: fog-drift-1 14s ease-in-out infinite;
+}
+
+.animate-fog-drift-2 {
+  animation: fog-drift-2 18s ease-in-out infinite;
+}
+
+/* 8. Twinkling Stars & Shooting Star */
+@keyframes star-twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.animate-star-twinkle {
+  animation: star-twinkle ease-in-out infinite;
+}
+
+@keyframes shooting-star {
+  0%, 90% {
+    transform: translateX(0) translateY(0) scale(0);
+    opacity: 0;
+  }
+  92% {
+    opacity: 1;
+    transform: translateX(-80px) translateY(80px) scale(1);
+  }
+  95% {
+    opacity: 0;
+    transform: translateX(-200px) translateY(200px) scale(0.2);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-shooting-star {
+  animation: shooting-star 10s ease-out infinite;
+}
