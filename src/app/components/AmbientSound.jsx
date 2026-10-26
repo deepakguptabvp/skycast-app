@@ -1,134 +1,148 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { Volume2, VolumeX, Loader2 } from "lucide-react";
 
-const AmbientSound = ({ weatherCode = 800 }) => {
+// Real studio-recorded nature sound tracks from Google Public Sound Library
+const WEATHER_SOUNDS = {
+  thunderstorm: {
+    name: "Thunder & Rain",
+    url: "https://actions.google.com/sounds/v1/weather/summer_thunder_and_rain.ogg",
+    icon: "⚡",
+  },
+  rain: {
+    name: "Rainfall",
+    url: "https://actions.google.com/sounds/v1/weather/rain_on_roof.ogg",
+    icon: "🌧️",
+  },
+  wind: {
+    name: "Breeze & Wind",
+    url: "https://actions.google.com/sounds/v1/weather/wind.ogg",
+    icon: "🍃",
+  },
+  night: {
+    name: "Night Crickets",
+    url: "https://actions.google.com/sounds/v1/ambiences/crickets_with_distant_traffic.ogg",
+    icon: "🌙",
+  },
+  birds: {
+    name: "Nature Songbirds",
+    url: "https://actions.google.com/sounds/v1/animals/june_songbirds.ogg",
+    icon: "🐦",
+  },
+};
+
+const AmbientSound = ({ weatherCode = 800, icon = "01d" }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioCtxRef = useRef(null);
-  const gainNodeRef = useRef(null);
-  const noiseSourceRef = useRef(null);
-  const oscRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const audioRef = useRef(null);
 
-  // Stop sound
-  const stopAudio = useCallback(() => {
-    try {
-      if (gainNodeRef.current && audioCtxRef.current) {
-        gainNodeRef.current.gain.setTargetAtTime(0, audioCtxRef.current.currentTime, 0.2);
-      }
-      setTimeout(() => {
-        if (noiseSourceRef.current) {
-          noiseSourceRef.current.stop();
-          noiseSourceRef.current.disconnect();
-          noiseSourceRef.current = null;
-        }
-        if (oscRef.current) {
-          oscRef.current.stop();
-          oscRef.current.disconnect();
-          oscRef.current = null;
-        }
-      }, 300);
-    } catch {}
+  const isNight = icon.endsWith("n");
+
+  // Determine which real track corresponds to the active weather
+  const currentSound = useMemo(() => {
+    // Thunderstorm: 2xx
+    if (weatherCode >= 200 && weatherCode < 300) {
+      return WEATHER_SOUNDS.thunderstorm;
+    }
+    // Rain & Drizzle: 3xx & 5xx
+    if (weatherCode >= 300 && weatherCode < 600) {
+      return WEATHER_SOUNDS.rain;
+    }
+    // Wind / Fog / Mist: 7xx
+    if (weatherCode >= 700 && weatherCode < 800) {
+      return WEATHER_SOUNDS.wind;
+    }
+    // Night sky
+    if (isNight) {
+      return WEATHER_SOUNDS.night;
+    }
+    // Clear / Sunny day
+    return WEATHER_SOUNDS.birds;
+  }, [weatherCode, isNight]);
+
+  // Audio player management
+  const playTrack = useCallback((url) => {
+    if (!audioRef.current) {
+      const audio = new Audio();
+      audio.loop = true;
+      audio.volume = 0.45;
+      audioRef.current = audio;
+    }
+
+    const audio = audioRef.current;
+    if (audio.src !== url) {
+      setIsLoading(true);
+      audio.src = url;
+      audio.load();
+    }
+
+    audio
+      .play()
+      .then(() => {
+        setIsLoading(false);
+        setIsPlaying(true);
+      })
+      .catch((err) => {
+        console.warn("Audio play blocked by browser policy:", err);
+        setIsLoading(false);
+        setIsPlaying(false);
+      });
   }, []);
 
-  // Play procedural ambient sound based on weather
-  const startAudio = useCallback(() => {
-    try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new AudioCtx();
-      }
-      if (audioCtxRef.current.state === "suspended") {
-        audioCtxRef.current.resume();
-      }
-
-      const ctx = audioCtxRef.current;
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(0.01, ctx.currentTime);
-      masterGain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.5);
-      masterGain.connect(ctx.destination);
-      gainNodeRef.current = masterGain;
-
-      // 1. Rain / Storm sound (Filtered White/Pink noise)
-      const isRain = weatherCode >= 200 && weatherCode < 600;
-      const isThunder = weatherCode >= 200 && weatherCode < 300;
-
-      // Generate 2 seconds of noise buffer
-      const bufferSize = ctx.sampleRate * 2;
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      let lastOut = 0.0;
-
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        // Pink noise filtering
-        output[i] = (lastOut + 0.02 * white) / 1.02;
-        lastOut = output[i];
-        output[i] *= 2.5;
-      }
-
-      const noise = ctx.createBufferSource();
-      noise.buffer = noiseBuffer;
-      noise.loop = true;
-
-      // Filter settings based on condition
-      const filter = ctx.createBiquadFilter();
-      if (isRain) {
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(isThunder ? 700 : 1200, ctx.currentTime);
-      } else {
-        // Soft wind / breeze
-        filter.type = "bandpass";
-        filter.frequency.setValueAtTime(450, ctx.currentTime);
-        filter.Q.setValueAtTime(1.8, ctx.currentTime);
-      }
-
-      noise.connect(filter);
-      filter.connect(masterGain);
-      noise.start();
-      noiseSourceRef.current = noise;
-    } catch (err) {
-      console.warn("Audio Context init error:", err);
+  const pauseTrack = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
     }
-  }, [weatherCode]);
+    setIsPlaying(false);
+    setIsLoading(false);
+  }, []);
 
   const toggleSound = () => {
     if (isPlaying) {
-      stopAudio();
-      setIsPlaying(false);
+      pauseTrack();
     } else {
-      startAudio();
-      setIsPlaying(true);
+      playTrack(currentSound.url);
     }
   };
 
+  // Change track if weather changes while playing
   useEffect(() => {
-    if (isPlaying) {
-      stopAudio();
-      startAudio();
+    if (isPlaying && currentSound.url) {
+      playTrack(currentSound.url);
     }
+  }, [currentSound.url, isPlaying, playTrack]);
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
-      stopAudio();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
-  }, [weatherCode, isPlaying, startAudio, stopAudio]);
+  }, []);
 
   return (
     <button
       type="button"
       onClick={toggleSound}
-      title={isPlaying ? "Mute Ambient Sound" : "Play Ambient Weather Sound"}
+      title={isPlaying ? `Pause ${currentSound.name} Audio` : `Play Real ${currentSound.name} Sound`}
       className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 text-xs font-semibold backdrop-blur-md border ${
         isPlaying
-          ? "bg-cyan-500/25 border-cyan-400 text-cyan-200 ring-2 ring-cyan-400/30"
+          ? "bg-cyan-500/25 border-cyan-400 text-cyan-200 ring-2 ring-cyan-400/30 shadow-lg shadow-cyan-500/20"
           : "bg-white/10 hover:bg-white/15 border-white/15 text-slate-200 hover:text-white"
       }`}
     >
-      {isPlaying ? (
+      {isLoading ? (
+        <Loader2 className="w-4 h-4 text-cyan-300 animate-spin" />
+      ) : isPlaying ? (
         <>
+          <span className="text-sm">{currentSound.icon}</span>
           <Volume2 className="w-4 h-4 text-cyan-300 animate-pulse" />
-          <span className="hidden sm:inline">Audio On</span>
-          {/* Sound wave bars */}
+          <span className="hidden sm:inline font-bold text-white">
+            {currentSound.name}
+          </span>
+          {/* Animated sound equalizer bars */}
           <span className="flex items-end gap-0.5 h-3 ml-0.5">
             <span className="w-0.5 h-full bg-cyan-300 animate-pulse" />
             <span className="w-0.5 h-2 bg-cyan-300 animate-bounce" />
@@ -138,7 +152,7 @@ const AmbientSound = ({ weatherCode = 800 }) => {
       ) : (
         <>
           <VolumeX className="w-4 h-4 text-slate-400" />
-          <span className="hidden sm:inline">Audio Off</span>
+          <span className="hidden sm:inline">Audio</span>
         </>
       )}
     </button>

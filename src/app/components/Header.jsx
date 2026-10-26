@@ -13,7 +13,7 @@ const Header = ({
   onOpenCompare,
   lastUpdated,
   weatherCode = 800,
-  temp = 25,
+  icon = "01d",
 }) => {
   return (
     <header className="w-full max-w-5xl mx-auto px-4 py-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4">
@@ -40,8 +40,8 @@ const Header = ({
 
       {/* Right Actions */}
       <div className="flex items-center gap-1.5 sm:gap-2.5">
-        {/* Procedural Ambient Soundscape Toggle */}
-        <AmbientSound weatherCode={weatherCode} temp={temp} />
+        {/* Real Weather Ambient Sound Toggle */}
+        <AmbientSound weatherCode={weatherCode} icon={icon} />
 
         {/* Compare Cities Button */}
         <button

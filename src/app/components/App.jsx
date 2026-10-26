@@ -297,7 +297,7 @@ const App = () => {
           onOpenCompare={() => setIsCompareOpen(true)}
           lastUpdated={lastUpdated}
           weatherCode={weatherCode}
-          temp={currentTemp}
+          icon={weatherIcon}
         />
 
         {/* Search Bar Section */}
